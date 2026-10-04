@@ -15,6 +15,11 @@ quar_files(){
     > mal_files #empty the file
     fi
 }
+check_files(){
+    check_extension
+    check_content
+    quar_files
+}
 if [ $# -ne 3 ]
 then
     echo "Exactly 3 arguments are required for this script to run."
@@ -27,9 +32,7 @@ fi
 olddir=directory-info.last
 newdir=directory-info.new
 ls -l $dir > $olddir
-check_extension
-check_content
-quar_files
+check_files
 sleep $secs
 while true; do
     ls -l $dir > $newdir    
@@ -37,8 +40,6 @@ while true; do
         sleep $secs
     else
         mv $newdir $olddir
-        check_extension
-        check_content
-        quar_files
+        check_files
     fi
 done
