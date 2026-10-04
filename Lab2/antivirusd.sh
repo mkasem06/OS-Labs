@@ -6,6 +6,15 @@ check_extension(){
 check_content(){
     grep -rilE "virus|trojan|malware|work|ransomware" $dir >> mal_files 
 }
+quar_files(){
+    if [ -f mal_files ]; then #checks that the file is not empty
+    while read -r file; do #reads every line from the file
+        mv "$file" $mal_dir
+        echo "$file is malicious and it is DELETED"
+    done < mal_files #take input from the file
+    > mal_files #empty the file
+    fi
+}
 if [ $# -ne 3 ]
 then
     echo "Exactly 3 arguments are required for this script to run."
@@ -20,13 +29,7 @@ newdir=directory-info.new
 ls -l $dir > $olddir
 check_extension
 check_content
-if [ -f mal_files ]; then #checks that the file is not empty
-    while read -r file; do #reads every line from the file
-        mv "$file" $mal_dir
-        echo "$file is malicious and it is DELETED"
-    done < mal_files #take input from the file
-    > mal_files #empty the file
-fi
+quar_files
 sleep $secs
 while true; do
     ls -l $dir > $newdir    
@@ -36,12 +39,6 @@ while true; do
         mv $newdir $olddir
         check_extension
         check_content
-        if [ -f mal_files ]; then
-            while read -r file; do
-                mv "$file" $mal_dir
-                echo "$file is malicious and it is DELETED"
-            done < mal_files
-            > mal_files
-        fi
+        quar_files
     fi
 done
