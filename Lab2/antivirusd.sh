@@ -36,7 +36,7 @@ check_files
 sleep $secs
 while true; do
     ls -l $dir > $newdir    
-    if cmp -s $olddir $newdir; then
+    if cmp -s $olddir $newdir; then # -s is for silent, return only the exit code and dont't print anything to screen
         sleep $secs
     else
         mv $newdir $olddir
