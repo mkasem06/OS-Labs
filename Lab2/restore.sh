@@ -30,7 +30,8 @@ while true; do
     done
     if [ $action_choice -eq 1 ]
     then
-        echo "Restored $file to $dir" 
+        echo "Restored $file to $dir"
+        echo "$dir/$file" >> whitelist.txt 
         mv $mal_dir/$file $dir
     elif [ $action_choice -eq 2 ]
     then
