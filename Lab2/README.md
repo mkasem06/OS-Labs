@@ -70,3 +70,15 @@ The script generates the following temporary files during execution. (These can 
 * `directory-info.last` - Stores the previous state of the directory.
 * `directory-info.new` - Stores the current state of the directory for comparison.
 * `mal_files` - A temporary list of flagged files waiting to be quarantined.
+
+### Cron Job:
+This automates the antivirus checking instead of the sleep argument we used before in the script
+## Usage:
+- Run this to open cron table:
+```bash
+crontab -e
+```
+- Add this to the cron table file (modify the paths to your use):
+`* * * * * sleep 23 && ~/Documents/OS-Labs/Lab2/antivirus-cron.sh ~/Documents/test ~/Documents/quar`
+    - Note: You must use the full path
+    - Note: "*\*\*\*\*\*" tells cron to execute at 00 seconds of every minute, we then use sleep because cron cant handle seconds.
