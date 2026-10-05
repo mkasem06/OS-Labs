@@ -13,13 +13,13 @@ help:
 
 setup:
 	@echo "Setting up directories..."
-	mkdir -p $(WATCH_DIR) # -p is used to create parent dir if they are not already availabel, and also prevents errors if the dir exists already
+	mkdir -p $(WATCH_DIR) # -p is used to create parent dir if they are not already available, and also prevents errors if the dir exists already
 	mkdir -p $(QUARANTINE_DIR)
 	chmod +x $(SCRIPT_NAME)
 
 run: setup
 	@echo "Starting the antovirus..."
-	$(SCRIPT_NAME) $(WATCH_DIR) $(QUARANTINE_DIR) $(SLEEP_SECS) # startinf the script with arguments
+	$(SCRIPT_NAME) $(WATCH_DIR) $(QUARANTINE_DIR) $(SLEEP_SECS) # starting the script with arguments
 
 clean:
 	@echo "Cleaning up temporary files..."
