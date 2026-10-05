@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Script executed at: $(date +'%Y-%m-%d %H:%M:%S')" >> ~/Documents/OS-Labs/Lab2/execution.log
+echo "Script executed at: $(date +'%Y-%m-%d %H:%M:%S')" >> ~/Documents/OS-Labs/Lab2/execution.log #this is used as a test to check that the cron job executes the way we want
 check_extension(){
     find "$dir" -type f \( -name "*.exe" -o -name "*.bat" -o -name "*.vbs" -o -name "*.scr" -o -name "*.ps1" \) > mal_files # -o is for or
 }
