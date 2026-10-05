@@ -88,3 +88,6 @@ What the cron expression should be to run this scan every 3rd Friday of the mont
 
 Answer: 31 0 3 * 5 (31 for minutes, 0 for hour (12 in am), 3 for day, * for any month (aka every month), 5 is for friday (weekday 0-6 starts at sunday))  
 ```
+
+## Whitelist:
+- In the restore script, after the user chooses to restore a file, the files path is written to a file called whitelist.txt, in the antivirusd.sh script, when malicious files are found, they are checked first to see if they are in the whitelist.txt, if yes they are skipped, else they are removed. 
