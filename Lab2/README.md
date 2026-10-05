@@ -82,3 +82,9 @@ crontab -e
 `* * * * * sleep 23 && ~/Documents/OS-Labs/Lab2/antivirus-cron.sh ~/Documents/test ~/Documents/quar`
     - Note: You must use the full path
     - Note: "*\*\*\*\*\*" tells cron to execute at 00 seconds of every minute, we then use sleep because cron cant handle seconds.
+
+```markdown
+What the cron expression should be to run this scan every 3rd Friday of the month at 12:31 am?
+
+Answer: 31 0 3 * 5 (31 for minutes, 0 for hour (12 in am), 3 for day, * for any month (aka every month), 5 is for friday (weekday 0-6 starts at sunday))  
+```
