@@ -8,7 +8,7 @@ check_content(){
     grep -rilE "virus|trojan|malware|work|ransomware" $dir >> mal_files 
 }
 quar_files(){
-    if [ -f mal_files ]; then #checks that the file is not empty
+    if [ -s mal_files ]; then #checks that the file is not empty and exists
     while read -r file; do #reads every line from the file
         mv "$file" $mal_dir
         echo "$file is malicious and it is DELETED"

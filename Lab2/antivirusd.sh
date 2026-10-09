@@ -7,7 +7,7 @@ check_content(){
     grep -rilE "virus|trojan|malware|work|ransomware" $dir >> mal_files 
 }
 quar_files(){
-    if [ -f mal_files ]; then #checks that the file exists
+    if [ -s mal_files ]; then #checks that the file exists and is not empty
     while read -r file; do #reads every line from the file
         if grep -qxF "$file" whitelist.txt; then # -q is for quiet, so no output comes on screen, -x is for exact line match, -F is for formatting treats wildcards as literal strings
             continue
