@@ -18,7 +18,7 @@ setup:
 	chmod +x $(SCRIPT_NAME)
 
 run: setup
-	@echo "Starting the antovirus..."
+	@echo "Starting the antivirus..."
 	$(SCRIPT_NAME) $(WATCH_DIR) $(QUARANTINE_DIR) $(SLEEP_SECS) # starting the script with arguments
 
 clean:
