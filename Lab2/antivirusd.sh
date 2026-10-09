@@ -35,15 +35,15 @@ else
 fi
 olddir=directory-info.last
 newdir=directory-info.new
-ls -l $dir > $olddir
 check_files
+ls -l $dir > $olddir
 sleep $secs
 while true; do
     ls -l $dir > $newdir    
     if cmp -s $olddir $newdir; then # -s is for silent, return only the exit code and dont print anything to screen
         sleep $secs
     else
-        mv $newdir $olddir
         check_files
+        ls -l $dir > $olddir
     fi
 done

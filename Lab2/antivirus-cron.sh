@@ -35,6 +35,7 @@ ls -l $dir > $newdir
 if cmp -s $olddir $newdir; then # -s is for silent, return only the exit code and dont't print anything to screen
 rm -f $newdir
 else
-    mv $newdir $olddir
     check_files
+    ls -l $dir > $olddir
+    
 fi
