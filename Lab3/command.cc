@@ -201,10 +201,116 @@ void Command::print()
 void Command::execute()
 {
     print();
-    /*
-        Write your code here
-    */
-
+    
+    if(_numberOfSimpleCommands == 0)
+    {
+        return; // empty input so return
+    }
+    if(strcmp(_simpleCommands[0]->_arguments[0], "exit") == 0)
+    {
+        exit(0);
+    }
+    if(strcmp(_simpleCommands[0]->_arguments[0], "cd") == 0)
+    {
+        if(_simpleCommands[0]->_arguments[1]) //if there is a dir after cd
+        {
+            chdir(_simpleCommands[0]->_arguments[1]); //cahnge dir to that dir
+            clear();
+            prompt();
+            return;
+        }
+        else
+        {
+            chdir(getenv("HOME")); //if the command is cd only then go to home dir
+            clear();
+            prompt();
+            return;
+        }
+    }
+    int tempIN, tempOUT, tempERR;
+    pid_t pid;
+    tempIN = dup(0); // saves the stdin so that when I can return to it again
+    tempOUT = dup(1); // saves the stdout .....
+    tempERR = dup(2); // saves the stderr ......
+    int filedescIN;
+    if(_inputFile)
+    {
+       int isOpen = open(_inputFile, O_RDONLY);
+       if(isOpen == -1)
+       {
+        printf("File could not be opened!");
+        return;
+       }
+       filedescIN = isOpen;
+    }
+    else
+    {
+        filedescIN = dup(tempIN);
+    }
+    for (size_t i = 0; i < _numberOfSimpleCommands; i++)
+    {
+        dup2(filedescIN, 0);
+        close(filedescIN);
+        int filedescOUT;
+        if( i == _numberOfSimpleCommands - 1)
+        {
+            if(_currentCommand._outFile)
+            {
+                if(_currentCommand._append == 1)
+                {
+                    filedescOUT = open(_currentCommand._outFile, O_WRONLY | O_CREAT | O_APPEND);
+                }
+                else
+                {
+                   filedescOUT = open(_currentCommand._outFile, O_WRONLY | O_CREAT | O_TRUNC);
+                }
+            }
+            else
+            {
+                filedescOUT = dup(tempOUT);
+            }
+        }
+        else
+        {
+            int filedescPIPE[2];
+            pipe(filedescPIPE);
+            filedescIN = filedescPIPE[0]; // this is the read part of the pipe
+            filedescOUT = filedescPIPE[1]; // this is the write part where it gets the input from the read part
+        }
+        dup2(filedescOUT, 1);
+        close(filedescOUT);
+        if(_currentCommand._errFile)
+        {
+            int filedescERR = open(_currentCommand._errFile, O_WRONLY | O_CREAT | O_TRUNC);
+            dup2(filedescERR, 2);
+        }
+        else if (_currentCommand._out_error)
+        {
+            dup2(1, 2);
+        }
+        
+        pid = fork();
+        if (pid == 0)
+        {
+            int dummyerr = execvp(_simpleCommands[i]->_arguments[0], _simpleCommands[i]->_arguments); // pass the first argument since it contains the command itself for ex: "ls", and then pass the full arguments array
+            if(dummyerr)
+            {
+                printf("Command not found!");
+                exit(1);
+            }
+        }
+                
+    }
+    dup2(tempIN, 0);
+    dup2(tempOUT, 1);
+    dup2(tempERR, 2);
+    close(tempIN);
+    close(tempOUT);
+    close(tempERR);
+    if(_currentCommand._background == 0) // if there is no background process then wait for the child to finish
+    {
+        waitpid(pid, NULL, 0);
+    }
     clear();
     prompt();
 }
