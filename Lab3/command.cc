@@ -148,6 +148,8 @@ Command::Command()
     _inputFile = 0;
     _errFile = 0;
     _background = 0;
+    _out_error = 0;
+    _append = 0;
 }
 
 void Command::insertSimpleCommand(SimpleCommand *simpleCommand)
@@ -196,6 +198,8 @@ void Command::clear()
     _inputFile = 0;
     _errFile = 0;
     _background = 0;
+    _out_error = 0;  // I added these two lines because if i type a wrong command followed by | grep for example, it doesnt show that the command is invalid
+    _append = 0;     // this is because without initializing _out_error to 0, it gets a random garbage value which then makes it true 
 }
 
 void Command::print()
