@@ -254,15 +254,15 @@ void Command::execute()
         int filedescOUT;
         if( i == _numberOfSimpleCommands - 1)
         {
-            if(_currentCommand._outFile)
+            if(_outFile)
             {
-                if(_currentCommand._append == 1)
+                if(_append == 1)
                 {
-                    filedescOUT = open(_currentCommand._outFile, O_WRONLY | O_CREAT | O_APPEND);
+                    filedescOUT = open(_outFile, O_WRONLY | O_CREAT | O_APPEND, 0666);
                 }
                 else
                 {
-                   filedescOUT = open(_currentCommand._outFile, O_WRONLY | O_CREAT | O_TRUNC);
+                   filedescOUT = open(_outFile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                 }
             }
             else
@@ -279,12 +279,13 @@ void Command::execute()
         }
         dup2(filedescOUT, 1);
         close(filedescOUT);
-        if(_currentCommand._errFile)
+        if(_errFile)
         {
-            int filedescERR = open(_currentCommand._errFile, O_WRONLY | O_CREAT | O_TRUNC);
+            int filedescERR = open(_errFile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
             dup2(filedescERR, 2);
+            close(filedescERR);
         }
-        else if (_currentCommand._out_error)
+        else if (_out_error)
         {
             dup2(1, 2);
         }
@@ -307,7 +308,7 @@ void Command::execute()
     close(tempIN);
     close(tempOUT);
     close(tempERR);
-    if(_currentCommand._background == 0) // if there is no background process then wait for the child to finish
+    if(_background == 0) // if there is no background process then wait for the child to finish
     {
         waitpid(pid, NULL, 0);
     }
@@ -331,8 +332,24 @@ void Command::prompt()
 Command Command::_currentCommand;
 SimpleCommand *Command::_currentSimpleCommand;
 
+void logs(int num)
+{
+    pid_t pid;
+    while((pid = waitpid(-1, NULL, WNOHANG)) > 0)
+    {   
+        FILE* logFile = fopen("child.log", "a");
+        if (logFile)
+        {
+            fprintf(logFile, "Child process %d terminated\n", pid);
+            fclose(logFile);
+        }
+    }
+}
+
 int main()
 {
+    signal(SIGINT, SIG_IGN);
+    signal(SIGCHLD, logs);
     Command::_currentCommand.prompt();
     return 0;
 }
