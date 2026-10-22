@@ -34,13 +34,59 @@ void parse(std::vector<Token> &tokens)
     Command currentCommand;
     SimpleCommand *currentSimpleCommand = new SimpleCommand();
 
-    currentCommand.execute();
-    /*
-      Implement this function 
-      you must parse for all possible tokens scenario
-      right now command.execute only print the format , you will inject it in your logic.
-
-    */
+    for (int i = 0; i < tokens.size(); i++)
+    {
+        if (tokens[i].type == TOKEN_COMMAND)
+        {
+            currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+        }
+        else if (tokens[i].type == TOKEN_ARGUMENT)
+        {
+            currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+        }
+        else if (tokens[i].type == TOKEN_PIPE)
+        {
+            currentCommand.insertSimpleCommand(currentSimpleCommand);
+            currentSimpleCommand = new SimpleCommand(); 
+        }
+        else if (tokens[i].type == TOKEN_INPUT)
+        {
+            currentCommand._inputFile = strdup(tokens[i + 1].value.c_str());
+            i++;
+        }
+        else if (tokens[i].type == TOKEN_REDIRECT)
+        {
+            currentCommand._outFile = strdup(tokens[i + 1].value.c_str());
+            i++;
+        }
+        else if (tokens[i].type == TOKEN_APPEND)
+        {
+            currentCommand._outFile = strdup(tokens[i + 1].value.c_str());
+            currentCommand._append = 1;
+            i++;
+        }
+        else if (tokens[i].type == TOKEN_ERROR)
+        {
+            currentCommand._errFile = strdup(tokens[i + 1].value.c_str());
+            i++;
+        }
+        else if (tokens[i].type == TOKEN_REDIRECT_AND_ERROR)
+        {
+            currentCommand._outFile = strdup(tokens[i + 1].value.c_str());
+            currentCommand._out_error = 1;
+            i++;
+        }
+        else if (tokens[i].type == TOKEN_BACKGROUND)
+        {
+            currentCommand._background = 1;
+        }
+        else
+        {
+            currentCommand.insertSimpleCommand(currentSimpleCommand);
+            currentCommand.execute();
+            break;
+        }
+    }
 }
 
 SimpleCommand::SimpleCommand()
