@@ -228,8 +228,9 @@ void Command::execute()
 {
     print();
     
-    if(_numberOfSimpleCommands == 0)
+    if(_numberOfSimpleCommands == 0 || _simpleCommands[0]->_numberOfArguments == 0)
     {
+        clear();
         return; // empty input so return
     }
     if(strcmp(_simpleCommands[0]->_arguments[0], "exit") == 0)
@@ -242,14 +243,12 @@ void Command::execute()
         {
             chdir(_simpleCommands[0]->_arguments[1]); //cahnge dir to that dir
             clear();
-            prompt();
             return;
         }
         else
         {
             chdir(getenv("HOME")); //if the command is cd only then go to home dir
             clear();
-            prompt();
             return;
         }
     }
@@ -322,7 +321,7 @@ void Command::execute()
             int dummyerr = execvp(_simpleCommands[i]->_arguments[0], _simpleCommands[i]->_arguments); // pass the first argument since it contains the command itself for ex: "ls", and then pass the full arguments array
             if(dummyerr)
             {
-                printf("Command not found!");
+                perror("Command not found!");
                 exit(1);
             }
         }
@@ -339,16 +338,15 @@ void Command::execute()
         waitpid(pid, NULL, 0);
     }
     clear();
-    prompt();
 }
 
 void Command::prompt()
 {
-    printf("myshell>");
-    fflush(stdout);
     std::string input;
     while (true)
     {
+        printf("myshell>"); // I had to edit this and put it inside the loop so that i dont have to call prompt() each time which causes the stack to explode because of the multiple loops created on top of each other and it crashes the shell
+        fflush(stdout);
         std::getline(std::cin, input); 
         std::vector<Token> tokens = tokenize(input);
         parse(tokens);
