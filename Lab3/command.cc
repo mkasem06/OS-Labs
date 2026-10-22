@@ -38,11 +38,37 @@ void parse(std::vector<Token> &tokens)
     {
         if (tokens[i].type == TOKEN_COMMAND)
         {
-            currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+            if(tokens[i].value.find("*") || tokens[i].value.find("?"))
+            {
+                glob_t result;
+                glob(tokens[i].value.c_str(), GLOB_NOCHECK | GLOB_TILDE, NULL, &result);
+                for (size_t j = 0; j < result.gl_pathc; j++)
+                {
+                    currentSimpleCommand->insertArgument(strdup(result.gl_pathv[j]));
+                }
+                globfree(&result);
+            }
+            else
+            {
+                currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+            }
         }
         else if (tokens[i].type == TOKEN_ARGUMENT)
         {
-            currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+            if(tokens[i].value.find("*") || tokens[i].value.find("?"))
+            {
+                glob_t result;
+                glob(tokens[i].value.c_str(), GLOB_NOCHECK | GLOB_TILDE, NULL, &result);
+                for (size_t j = 0; j < result.gl_pathc; j++)
+                {
+                    currentSimpleCommand->insertArgument(strdup(result.gl_pathv[j]));
+                }
+                globfree(&result);
+            }
+            else
+            {
+                currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+            }
         }
         else if (tokens[i].type == TOKEN_PIPE)
         {
