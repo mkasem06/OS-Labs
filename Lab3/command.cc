@@ -34,11 +34,11 @@ void parse(std::vector<Token> &tokens)
     Command currentCommand;
     SimpleCommand *currentSimpleCommand = new SimpleCommand();
 
-    for (int i = 0; i < tokens.size(); i++)
+    for (size_t i = 0; i < tokens.size(); i++)
     {
         if (tokens[i].type == TOKEN_COMMAND)
         {
-            if(tokens[i].value.find("*") || tokens[i].value.find("?"))
+            if(tokens[i].value.find_first_of("*?~[]") != std::string::npos)
             {
                 glob_t result;
                 glob(tokens[i].value.c_str(), GLOB_NOCHECK | GLOB_TILDE, NULL, &result); // the first argument is the actual string containing the wildcard, the 2nd one is for the flags (NOCHECK is so that if no files match the pattern the function returns the literal pattern itself) (TILDE tells the function to expand ~ to the HOME dir), the 3rd is because we want to ignore read errors
@@ -55,7 +55,7 @@ void parse(std::vector<Token> &tokens)
         }
         else if (tokens[i].type == TOKEN_ARGUMENT)
         {
-            if(tokens[i].value.find("*") || tokens[i].value.find("?"))
+            if(tokens[i].value.find_first_of("*?~[]") != std::string::npos)
             {
                 glob_t result;
                 glob(tokens[i].value.c_str(), GLOB_NOCHECK | GLOB_TILDE, NULL, &result);
@@ -67,7 +67,27 @@ void parse(std::vector<Token> &tokens)
             }
             else
             {
-                currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+                if(!tokens[i].value.empty() && tokens[i].value.front() == '"')
+                {
+                    std::string fullString = tokens[i].value.substr(1);
+                    while (i < tokens.size() && fullString.back() != '"')
+                    {
+                        i++;
+                        if(i < tokens.size())
+                        {
+                            fullString += " " + tokens[i].value;
+                        }
+                    }
+                    if(!fullString.empty() && fullString.back() == '"')
+                    {
+                        fullString.pop_back();
+                    }
+                    currentSimpleCommand->insertArgument(strdup(fullString.c_str()));
+                }
+                else
+                {
+                    currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+                }
             }
         }
         else if (tokens[i].type == TOKEN_PIPE)
