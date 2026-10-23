@@ -41,16 +41,16 @@ void parse(std::vector<Token> &tokens)
             if(tokens[i].value.find("*") || tokens[i].value.find("?"))
             {
                 glob_t result;
-                glob(tokens[i].value.c_str(), GLOB_NOCHECK | GLOB_TILDE, NULL, &result);
-                for (size_t j = 0; j < result.gl_pathc; j++)
+                glob(tokens[i].value.c_str(), GLOB_NOCHECK | GLOB_TILDE, NULL, &result); // the first argument is the actual string containing the wildcard, the 2nd one is for the flags (NOCHECK is so that if no files match the pattern the function returns the literal pattern itself) (TILDE tells the function to expand ~ to the HOME dir), the 3rd is because we want to ignore read errors
+                for (size_t j = 0; j < result.gl_pathc; j++) //gl_path is count of paths matched by the pattern
                 {
-                    currentSimpleCommand->insertArgument(strdup(result.gl_pathv[j]));
+                    currentSimpleCommand->insertArgument(strdup(result.gl_pathv[j])); // gl_pathv contains a list of matched patterns
                 }
                 globfree(&result);
             }
             else
             {
-                currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str()));
+                currentSimpleCommand->insertArgument(strdup(tokens[i].value.c_str())); //c_str takes c++ string and returns normal C char* strdup is used to allocate memory to an existing string and returns char * which is needed by SimpleCommand
             }
         }
         else if (tokens[i].type == TOKEN_ARGUMENT)
@@ -72,13 +72,13 @@ void parse(std::vector<Token> &tokens)
         }
         else if (tokens[i].type == TOKEN_PIPE)
         {
-            currentCommand.insertSimpleCommand(currentSimpleCommand);
+            currentCommand.insertSimpleCommand(currentSimpleCommand); 
             currentSimpleCommand = new SimpleCommand(); 
         }
         else if (tokens[i].type == TOKEN_INPUT)
         {
-            currentCommand._inputFile = strdup(tokens[i + 1].value.c_str());
-            i++;
+            currentCommand._inputFile = strdup(tokens[i + 1].value.c_str()); //assing the input file to the  next token since its the input file name
+            i++; // increment i because we already handeled the next token above
         }
         else if (tokens[i].type == TOKEN_REDIRECT)
         {
@@ -245,9 +245,16 @@ void Command::execute()
     {
         if(_simpleCommands[0]->_arguments[1]) //if there is a dir after cd
         {
-            chdir(_simpleCommands[0]->_arguments[1]); //cahnge dir to that dir
-            clear();
-            return;
+            int isFound = chdir(_simpleCommands[0]->_arguments[1]); //change dir to that dir
+            if(isFound == -1)
+            {
+                perror("dir not found!");
+            }
+            else
+            {
+                clear();
+                return;
+            }
         }
         else
         {
@@ -267,18 +274,18 @@ void Command::execute()
        int isOpen = open(_inputFile, O_RDONLY);
        if(isOpen == -1)
        {
-        printf("File could not be opened!");
+        printf("File could not be opened!\n");
         return;
        }
-       filedescIN = isOpen;
+       filedescIN = isOpen;//change the working input file descriptor to the one we just opened
     }
     else
     {
-        filedescIN = dup(tempIN);
+        filedescIN = dup(tempIN); //set the working input file descriptor to the default if there is no _inputFile
     }
     for (size_t i = 0; i < _numberOfSimpleCommands; i++)
     {
-        dup2(filedescIN, 0);
+        dup2(filedescIN, 0); // redirect default stdin to read from the current working input source
         close(filedescIN);
         int filedescOUT;
         if( i == _numberOfSimpleCommands - 1)
@@ -287,7 +294,7 @@ void Command::execute()
             {
                 if(_append == 1)
                 {
-                    filedescOUT = open(_outFile, O_WRONLY | O_CREAT | O_APPEND, 0666);
+                    filedescOUT = open(_outFile, O_WRONLY | O_CREAT | O_APPEND, 0666); // if append is true, open the file and assign its value to the working OUT file descriptor
                 }
                 else
                 {
@@ -296,30 +303,30 @@ void Command::execute()
             }
             else
             {
-                filedescOUT = dup(tempOUT);
+                filedescOUT = dup(tempOUT); // if no output file then return the default value to the working OUT file desc
             }
         }
         else
         {
-            int filedescPIPE[2];
+            int filedescPIPE[2]; // pipe needs an array with 2 values, the first element is for the read part of the pipe and the 2nd element is for the write part
             pipe(filedescPIPE);
             filedescIN = filedescPIPE[0]; // this is the read part of the pipe
             filedescOUT = filedescPIPE[1]; // this is the write part where it gets the input from the read part
         }
-        dup2(filedescOUT, 1);
+        dup2(filedescOUT, 1); // redirect default stdout to read from the current working output source
         close(filedescOUT);
         if(_errFile)
         {
             int filedescERR = open(_errFile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-            dup2(filedescERR, 2);
+            dup2(filedescERR, 2); // redirect default stderr to read from the current working output source
             close(filedescERR);
         }
         else if (_out_error)
         {
-            dup2(1, 2);
+            dup2(1, 2); // redirect default stderr to read from default stdout
         }
         
-        pid = fork();
+        pid = fork(); //create a child process
         if (pid == 0)
         {
             int dummyerr = execvp(_simpleCommands[i]->_arguments[0], _simpleCommands[i]->_arguments); // pass the first argument since it contains the command itself for ex: "ls", and then pass the full arguments array
@@ -331,7 +338,7 @@ void Command::execute()
         }
                 
     }
-    dup2(tempIN, 0);
+    dup2(tempIN, 0); //return all stdin,out,err to their default values
     dup2(tempOUT, 1);
     dup2(tempERR, 2);
     close(tempIN);
@@ -339,7 +346,7 @@ void Command::execute()
     close(tempERR);
     if(_background == 0) // if there is no background process then wait for the child to finish
     {
-        waitpid(pid, NULL, 0);
+        waitpid(pid, NULL, 0); // pid waits for that specific child to die, NULL ignores the child exit status, and 0 is a flag that tells the OS to completely freeze the parent till the child is done
     }
     clear();
 }
@@ -363,9 +370,9 @@ SimpleCommand *Command::_currentSimpleCommand;
 void logs(int num)
 {
     pid_t pid;
-    while((pid = waitpid(-1, NULL, WNOHANG)) > 0)
+    while((pid = waitpid(-1, NULL, WNOHANG)) > 0) //-1 matches any process, WNOHANG doesnt freeze the parent process and > 0 is to ensure there is a child that finished its process
     {   
-        FILE* logFile = fopen("child.log", "a");
+        FILE* logFile = fopen("child.log", "a"); //open the file in append mode
         if (logFile)
         {
             fprintf(logFile, "Child process %d terminated\n", pid);
@@ -376,8 +383,8 @@ void logs(int num)
 
 int main()
 {
-    signal(SIGINT, SIG_IGN);
-    signal(SIGCHLD, logs);
+    signal(SIGINT, SIG_IGN); //tells the shell to ignore the Ctrl+C 
+    signal(SIGCHLD, logs); // whenever a child is done with a process this tells the OS to go execute the logs function
     Command::_currentCommand.prompt();
     return 0;
 }
